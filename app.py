@@ -3,10 +3,13 @@
 import os
 
 from flask import Flask, render_template, redirect, flash, request
+import requests
 from flask_debugtoolbar import DebugToolbarExtension
 
 from models import connect_db, db, Pet
 from forms import AddPetForm, EditPetForm
+
+
 
 
 app = Flask(__name__)
@@ -21,12 +24,32 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
 
 connect_db(app)
 
+
+
 # Having the Debug Toolbar show redirects explicitly is often useful;
 # however, if you want to turn it off, you can uncomment this line:
 #
 # app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 toolbar = DebugToolbarExtension(app)
+
+CLIENT_ID = os.environ.get("PETFINDER_API_KEY")
+CLIENT_SECRET = os.environ.get("PETFINDER_API_SECRET")
+auth_token = None
+
+@app.before_first_request
+def refresh_credentials():
+    """Just once, get token and store it globally."""
+    global auth_token
+    auth_token = update_auth_token_string()
+
+def update_auth_token_string():
+    resp = requests.get("https://api.petfinder.com/v2/oauth2/token",
+        params={"grant_type": "client_credentials",
+                "client_id": CLIENT_ID,
+                "client_secret": CLIENT_SECRET
+                })
+    return resp.json().get("access_token")
 
 @app.get('/')
 def show_homepage():
@@ -49,7 +72,12 @@ def show_add_pet():
         age = form.age.data
         notes = form.notes.data
 
-        pet = Pet(name=name, species=species, photo_url=photo_url, age=age, notes=notes)
+        pet = Pet(name=name,
+                  species=species,
+                  photo_url=photo_url,
+                  age=age,
+                  notes=notes
+                 )
 
         db.session.add(pet)
         db.session.commit()
@@ -81,3 +109,4 @@ def show_edit_pet(pet_id):
     else:
         return render_template(
             "pet-edit-form.html", form=form, pet=pet)
+
