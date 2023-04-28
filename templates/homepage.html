@@ -3,20 +3,25 @@
 {% block title %}Home Page{% endblock %}
 
 {% block content %}
-<h1>sup dawgs</h1>
-<ul>
-  {% for pet in pets %}
-    <li>
-      <div>
-        <img src="{{pet.photo_url}}"/>
-      </div>
-      <div>
-        <p> <a href="/{{pet.id}}">{{pet.name}}</a>:
-          {% if pet.available %}
-          <strong>Available</strong>
-          {% endif %}</p>
-      </div>
-    </li>
-  {% endfor %}
-</ul>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-8">
+      <h1>sup dawgs</h1>
+      <ul>
+        {% for pet in pets %}
+          <li class="d-inline">
+            <img class =  src="{{pet.photo_url}}"/>
+            <div class="d-inline">
+              <p> <a href="/{{pet.id}}">{{pet.name}}</a>:
+                {% if pet.available %}
+                <strong>Available</strong>
+                {% endif %}</p>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
 {% endblock %}
