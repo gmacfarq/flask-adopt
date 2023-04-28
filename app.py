@@ -19,8 +19,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
 
 connect_db(app)
 
-db.create_all()
-
 # Having the Debug Toolbar show redirects explicitly is often useful;
 # however, if you want to turn it off, you can uncomment this line:
 #
