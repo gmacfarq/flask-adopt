@@ -8,8 +8,10 @@ from flask_debugtoolbar import DebugToolbarExtension
 
 from models import connect_db, db, Pet
 from forms import AddPetForm, EditPetForm
+from dotenv import load_dotenv
+from pet_finder import update_auth_token_string, get_pet_data
 
-
+load_dotenv()
 
 
 app = Flask(__name__)
@@ -33,23 +35,14 @@ connect_db(app)
 
 toolbar = DebugToolbarExtension(app)
 
-CLIENT_ID = os.environ.get("PETFINDER_API_KEY")
-CLIENT_SECRET = os.environ.get("PETFINDER_API_SECRET")
 auth_token = None
 
-@app.before_first_request
+@app.before_request
 def refresh_credentials():
     """Just once, get token and store it globally."""
     global auth_token
     auth_token = update_auth_token_string()
 
-def update_auth_token_string():
-    resp = requests.get("https://api.petfinder.com/v2/oauth2/token",
-        params={"grant_type": "client_credentials",
-                "client_id": CLIENT_ID,
-                "client_secret": CLIENT_SECRET
-                })
-    return resp.json().get("access_token")
 
 @app.get('/')
 def show_homepage():
@@ -109,4 +102,20 @@ def show_edit_pet(pet_id):
     else:
         return render_template(
             "pet-edit-form.html", form=form, pet=pet)
+
+def store_pets():
+    resp = requests.get("https://api.petfinder.com/v2/oauth2/token",
+        params={"grant_type": "client_credentials",
+                "client_id": CLIENT_ID,
+                "client_secret": CLIENT_SECRET
+                })
+    return resp.json().get("access_token")
+
+@app.get("/save-pet")
+def get_random_pet():
+    """Pulls in pet data and adds it to database"""
+
+    pet = get_pet_data()
+    db.session.add(pet)
+    db.session.commit()
 
